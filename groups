@@ -1,4 +1,3 @@
 # UUID                                                                           	Group Name
 #
 ec6d5c5bf50e49c2b7eb524267b9c5eefd301b65                                         	saml/oran-gerrit-sim-e2-interface-committers
-ldap:cn=oran-gerrit-sim-e2-interface-committers,ou=Groups,dc=freestandards,dc=org	ldap/oran-gerrit-sim-e2-interface-committers
