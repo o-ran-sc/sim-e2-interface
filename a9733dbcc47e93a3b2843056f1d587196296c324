@@ -1,0 +1,8 @@
+Verified+1: ORAN Jobbuilder <releng+oran-jobbuilder@linuxfoundation.org>
+Code-Review+1: Scott Daniels <daniels@research.att.com>
+Code-Review+2: Ron Shacham <rshacham@research.att.com>
+Submitted-by: Ron Shacham <rshacham@research.att.com>
+Submitted-at: Tue, 15 Sep 2020 16:41:17 +0000
+Reviewed-on: https://gerrit.o-ran-sc.org/r/c/sim/e2-interface/+/4700
+Project: sim/e2-interface
+Branch: refs/heads/master
