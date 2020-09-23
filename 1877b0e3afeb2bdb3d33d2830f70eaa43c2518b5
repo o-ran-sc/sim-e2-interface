@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb7ba561_140b2d06",
+        "filename": "e2sim/e2sm_examples/kpm_e2sm/src/kpm/encode_kpm.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000037
+      },
+      "writtenOn": "2020-09-23T12:33:10Z",
+      "side": 1,
+      "message": "Is there a reason the license was pulled?   A C++ file without a license will raise an audit flag when LF scans things prior to the release.",
+      "revId": "1877b0e3afeb2bdb3d33d2830f70eaa43c2518b5",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    }
+  ]
+}
