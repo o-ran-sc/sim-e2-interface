@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "35b94fb7_312b9b97",
+        "filename": "e2sim/sample-messages/sample-service-update-delete.xml",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1000124
+      },
+      "writtenOn": "2020-10-06T11:38:33Z",
+      "side": 1,
+      "message": "Please remove the whitespaces.",
+      "range": {
+        "startLine": 20,
+        "startChar": 95,
+        "endLine": 20,
+        "endChar": 96
+      },
+      "revId": "55d208bb30a4206cfbc0b18627bc5150348ce30d",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "26319966_50613452",
+        "filename": "e2sim/sample-messages/sample-service-update-modify.xml",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1000124
+      },
+      "writtenOn": "2020-10-06T11:38:33Z",
+      "side": 1,
+      "message": "Please remove the whitespaces.",
+      "range": {
+        "startLine": 20,
+        "startChar": 95,
+        "endLine": 20,
+        "endChar": 96
+      },
+      "revId": "55d208bb30a4206cfbc0b18627bc5150348ce30d",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53",
+      "unresolved": true
+    }
+  ]
+}
