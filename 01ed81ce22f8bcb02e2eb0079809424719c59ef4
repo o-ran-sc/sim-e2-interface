@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "46933a0e_74ac0ba6",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1001043
+      },
+      "writtenOn": "2021-05-31T15:33:05Z",
+      "side": 1,
+      "message": "Basic VIAVI-KPM connector to receives RIC Test simulation data via TCP on a background thread and sends data to RIC as long as it subscribes...\n\nDesigned as a minimal modification to kpm_e2sm example app\n\n",
+      "revId": "01ed81ce22f8bcb02e2eb0079809424719c59ef4",
+      "serverId": "84e4e190-e623-4c37-9eda-58b1937c1b53"
+    }
+  ]
+}
