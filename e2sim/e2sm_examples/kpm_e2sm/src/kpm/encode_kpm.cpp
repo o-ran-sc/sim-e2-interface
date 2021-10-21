@@ -33,17 +33,13 @@ void encode_kpm_function_description(E2SM_KPM_RANfunction_Description_t* ranfunc
   uint8_t *buf = (uint8_t*)"ORAN-E2SM-KPM";
   uint8_t *buf2 = (uint8_t*)"KPM monitor";
   uint8_t *buf3 = (uint8_t*)"OID123";
-
-  OCTET_STRING_t *sname = (OCTET_STRING_t*)calloc(1, sizeof(OCTET_STRING_t));
-  sname->buf = (uint8_t*)calloc(1,13);
-  
-  memcpy(sname->buf, buf, 13);
-  sname->size = strlen((char*)buf);
-  ranfunc_desc->ranFunction_Name.ranFunction_ShortName = *sname;
-
   long inst = 1;
 
   ASN_STRUCT_RESET(asn_DEF_E2SM_KPM_RANfunction_Description, ranfunc_desc);
+
+  ranfunc_desc->ranFunction_Name.ranFunction_ShortName.size = strlen((char*)buf);
+  ranfunc_desc->ranFunction_Name.ranFunction_ShortName.buf = (uint8_t*)calloc(strlen((char*)buf), sizeof(uint8_t));
+  memcpy(ranfunc_desc->ranFunction_Name.ranFunction_ShortName.buf, buf, ranfunc_desc->ranFunction_Name.ranFunction_ShortName.size);
 
   //  ranfunc_desc->ranFunction_Name.ranFunction_Description = (OCTET_STRING_t*)calloc(1, sizeof(OCTET_STRING_t));
   ranfunc_desc->ranFunction_Name.ranFunction_Description.buf = (uint8_t*)calloc(1,strlen((char*)buf2));
