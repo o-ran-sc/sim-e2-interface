@@ -53,6 +53,7 @@ extern "C" {
 #include "RICsubsequentActionType.h"
 #include "RICsubsequentAction.h"  
 #include "RICtimeToWait.h"
+#include "E2nodeComponentInterfaceNG.h"
 // #include "E2nodeComponentGNB-CU-UP-ID.h"
 // #include "E2nodeComponentID.h"
 // #include "E2nodeComponentConfigUpdate.h"
@@ -210,6 +211,15 @@ void encoding::generate_e2apv1_setup_request_parameterized(E2AP_PDU_t *e2ap_pdu,
   if(globale2nodeid) free(globale2nodeid);
 
 
+  printf("seting up the tx id");
+  auto *e2txid = (E2setupRequestIEs_t *)calloc(1, sizeof(E2setupRequestIEs_t));
+  e2txid->id = ProtocolIE_ID_id_TransactionID;
+  e2txid-> criticality = 0;
+  e2txid->value.present = E2setupRequestIEs__value_PR_TransactionID;
+  e2txid->value.choice.TransactionID = 1;
+
+  printf("seting done the tx id");
+
   auto *ranFlistIEs = (E2setupRequestIEs_t *)calloc(1, sizeof(E2setupRequestIEs_t));
   ASN_STRUCT_RESET(asn_DEF_E2setupRequestIEs, ranFlistIEs);
   ranFlistIEs->criticality = 0;
@@ -229,7 +239,7 @@ void encoding::generate_e2apv1_setup_request_parameterized(E2AP_PDU_t *e2ap_pdu,
     itemIes->criticality = Criticality_reject;
     itemIes->value.present = RANfunction_ItemIEs__value_PR_RANfunction_Item;
     itemIes->value.choice.RANfunction_Item.ranFunctionID = nextRanFuncId;
-    itemIes->value.choice.RANfunction_Item.ranFunctionOID = nextRanFunc.ranFunctionOId;
+    itemIes->value.choice.RANfunction_Item.ranFunctionOID = RANfunctionOID_t(*(nextRanFunc.ranFunctionOId));
     int ranFuncLength = strlen((char*)nextRanFuncDesc);
 
     itemIes->value.choice.RANfunction_Item.ranFunctionDefinition = *nextRanFuncDesc;
@@ -238,6 +248,48 @@ void encoding::generate_e2apv1_setup_request_parameterized(E2AP_PDU_t *e2ap_pdu,
     ASN_SEQUENCE_ADD(&ranFlistIEs->value.choice.RANfunctions_List.list, itemIes);
 
   }
+
+auto *e2configIE = (E2setupRequestIEs_t *)calloc(1, sizeof(E2setupRequestIEs_t));
+e2configIE->id = ProtocolIE_ID_id_E2nodeComponentConfigAddition;
+e2configIE->criticality = Criticality_reject;
+e2configIE->value.present = E2setupRequestIEs__value_PR_E2nodeComponentConfigAddition_List;
+
+
+auto *e2configAdditionItem = (E2nodeComponentConfigAddition_ItemIEs_t *)calloc(1, sizeof(E2nodeComponentConfigAddition_ItemIEs_t));
+e2configAdditionItem->id = ProtocolIE_ID_id_E2nodeComponentConfigAddition_Item;
+e2configAdditionItem->criticality = Criticality_reject;
+e2configAdditionItem->value.present = E2nodeComponentConfigAddition_ItemIEs__value_PR_E2nodeComponentConfigAddition_Item;
+
+e2configAdditionItem->value.choice.E2nodeComponentConfigAddition_Item.e2nodeComponentInterfaceType = E2nodeComponentInterfaceType_ng;
+e2configAdditionItem->value.choice.E2nodeComponentConfigAddition_Item.e2nodeComponentID.present = E2nodeComponentID_PR_e2nodeComponentInterfaceTypeNG;
+
+// E2nodeComponentInterfaceNG_t intfNG;
+auto *intfNG = (E2nodeComponentInterfaceNG_t *) calloc(1, sizeof(E2nodeComponentInterfaceNG_t));
+  
+OCTET_STRING_t nginterf;
+nginterf.buf = (uint8_t*)calloc(1,8);
+memcpy(nginterf.buf, (uint8_t *)"nginterf", 8);
+
+nginterf.size = 8;
+intfNG->amf_name = (AMFName_t)(nginterf);
+
+e2configAdditionItem->value.choice.E2nodeComponentConfigAddition_Item.e2nodeComponentID.choice.e2nodeComponentInterfaceTypeNG = intfNG;
+
+OCTET_STRING_t reqPart;
+reqPart.buf = (uint8_t*)calloc(1,7);
+memcpy(reqPart.buf, (uint8_t *)"reqpart", 7);
+reqPart.size = 7;
+
+e2configAdditionItem->value.choice.E2nodeComponentConfigAddition_Item.e2nodeComponentConfiguration.e2nodeComponentRequestPart = reqPart;
+
+OCTET_STRING_t resPart;
+resPart.buf = (uint8_t*)calloc(1,7);
+memcpy(resPart.buf, (uint8_t *)"respart", 7);
+resPart.size = 7;
+e2configAdditionItem->value.choice.E2nodeComponentConfigAddition_Item.e2nodeComponentConfiguration.e2nodeComponentResponsePart = resPart;
+
+
+ASN_SEQUENCE_ADD(&e2configIE->value.choice.RANfunctions_List.list, e2configAdditionItem);
 /*
     auto *e2nodeconfigupdatelistIEs = (E2setupRequestIEs_t *)calloc(1, sizeof(E2setupRequestIEs_t));
   ASN_STRUCT_RESET(asn_DEF_E2setupRequestIEs, e2nodeconfigupdatelistIEs);
@@ -300,9 +352,10 @@ void encoding::generate_e2apv1_setup_request_parameterized(E2AP_PDU_t *e2ap_pdu,
   ASN_SEQUENCE_ADD(&e2nodeconfigupdatelistIEs->value.choice.E2nodeComponentConfigUpdate_List.list, configupdateitemIes);
 */
   E2setupRequest_t *e2setupreq = (E2setupRequest_t*)calloc(1, sizeof(E2setupRequest_t));
+  ASN_SEQUENCE_ADD(&e2setupreq->protocolIEs.list, e2txid);
   ASN_SEQUENCE_ADD(&e2setupreq->protocolIEs.list, e2setuprid);
   ASN_SEQUENCE_ADD(&e2setupreq->protocolIEs.list, ranFlistIEs);
-  //ASN_SEQUENCE_ADD(&e2setupreq->protocolIEs.list, e2nodeconfigupdatelistIEs);
+  ASN_SEQUENCE_ADD(&e2setupreq->protocolIEs.list, e2configIE);
 
 
   InitiatingMessage__value_PR pres4;
@@ -324,7 +377,63 @@ void encoding::generate_e2apv1_setup_request_parameterized(E2AP_PDU_t *e2ap_pdu,
 
 }
 
+void encoding::generate_e2apv2_config_update(E2AP_PDU_t *e2ap_pdu){
+ 
+  
 
+/// config update id for addtion list  
+auto *e2configIE = (E2nodeConfigurationUpdate_IEs_t *)calloc(1, sizeof(E2nodeConfigurationUpdate_IEs_t));
+e2configIE->id = ProtocolIE_ID_id_E2nodeComponentConfigAddition;
+e2configIE->criticality = Criticality_reject;
+e2configIE->value.present = E2nodeConfigurationUpdate_IEs__value_PR_E2nodeComponentConfigAddition_List;
+
+
+auto *e2configAdditionItem = (E2nodeComponentConfigAddition_ItemIEs_t *)calloc(1, sizeof(E2nodeComponentConfigAddition_ItemIEs_t));
+e2configAdditionItem->id = ProtocolIE_ID_id_E2nodeComponentConfigAddition_Item;
+e2configAdditionItem->criticality = Criticality_reject;
+e2configAdditionItem->value.present = E2nodeComponentConfigAddition_ItemIEs__value_PR_E2nodeComponentConfigAddition_Item;
+
+e2configAdditionItem->value.choice.E2nodeComponentConfigAddition_Item.e2nodeComponentInterfaceType = E2nodeComponentInterfaceType_ng;
+e2configAdditionItem->value.choice.E2nodeComponentConfigAddition_Item.e2nodeComponentID.present = E2nodeComponentID_PR_e2nodeComponentInterfaceTypeNG;
+
+auto *intfNG = (E2nodeComponentInterfaceNG_t *) calloc(1, sizeof(E2nodeComponentInterfaceNG_t));
+  
+OCTET_STRING_t nginterf;
+nginterf.buf = (uint8_t*)calloc(1,8);
+memcpy(nginterf.buf, (uint8_t *)"nginterf", 8);
+
+nginterf.size = 8;
+intfNG->amf_name = (AMFName_t)(nginterf);
+
+e2configAdditionItem->value.choice.E2nodeComponentConfigAddition_Item.e2nodeComponentID.choice.e2nodeComponentInterfaceTypeNG = intfNG;
+
+OCTET_STRING_t reqPart;
+reqPart.buf = (uint8_t*)calloc(1,7);
+memcpy(reqPart.buf, (uint8_t *)"reqpart", 7);
+reqPart.size = 7;
+
+e2configAdditionItem->value.choice.E2nodeComponentConfigAddition_Item.e2nodeComponentConfiguration.e2nodeComponentRequestPart = reqPart;
+
+OCTET_STRING_t resPart;
+resPart.buf = (uint8_t*)calloc(1,7);
+memcpy(resPart.buf, (uint8_t *)"respart", 7);
+resPart.size = 7;
+e2configAdditionItem->value.choice.E2nodeComponentConfigAddition_Item.e2nodeComponentConfiguration.e2nodeComponentResponsePart = resPart;
+
+
+
+
+
+ASN_SEQUENCE_ADD(&e2configIE->value.choice.E2nodeComponentConfigAddition_List, e2configAdditionItem);
+
+  InitiatingMessage *inititingMsg = (InitiatingMessage *) calloc(1, sizeof(InitiatingMessage));
+  inititingMsg->procedureCode = InitiatingMessage__value_PR_E2nodeConfigurationUpdate;
+  inititingMsg->criticality = Criticality_reject;
+  inititingMsg->value.present = InitiatingMessage__value_PR_E2nodeConfigurationUpdate;
+  ASN_SEQUENCE_ADD(&inititingMsg->value.choice.E2nodeConfigurationUpdate.protocolIEs.list, e2configIE);
+  e2ap_pdu->present = E2AP_PDU_PR_initiatingMessage;
+  e2ap_pdu->choice.initiatingMessage = inititingMsg;
+}
 
 void encoding::generate_e2apv1_setup_response(E2AP_PDU_t *e2ap_pdu) {
 

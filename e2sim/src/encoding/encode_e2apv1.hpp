@@ -57,6 +57,8 @@ namespace encoding {
   void generate_e2apv1_indication_request_parameterized(E2AP_PDU *e2ap_pdu, long requestorId, long instanceId, long ranFunctionId, long actionId, long seqNum, uint8_t *ind_header_buf, int header_length, uint8_t *ind_message_buf, int message_length);
   
   void generate_e2apv1_service_update(E2AP_PDU_t *e2ap_pdu, std::vector<ran_func_info> all_funcs);
+
+  void generate_e2apv2_config_update(E2AP_PDU_t *e2ap_edu);
 }
 
 #endif

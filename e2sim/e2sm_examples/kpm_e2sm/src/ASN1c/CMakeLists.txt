@@ -1,5 +1,3 @@
-
-
 #/*****************************************************************************
 #                                                                            *
 # Copyright 2020 AT&T Intellectual Property                                  *
@@ -24,17 +22,10 @@ file(GLOB SOURCES "*.c")
 file(GLOB HEADERS "*.h")
 
 include_directories(.)
-add_library( asn1_objects OBJECT ${SOURCES})
-
+add_library( asn1_objects STATIC ${SOURCES} ${HEADERS})
 target_include_directories (asn1_objects PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
   PRIVATE src)
 
-if( DEV_PKG )                                   
-  install( FILES
-    ${HEADERS}
-    DESTINATION ${install_inc}
-    )
-endif()
-# ---------------------------------------------------------------------------
+
