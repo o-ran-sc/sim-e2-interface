@@ -15,6 +15,7 @@ extern "C" {
 #define maxofRANfunctionID (256)
 #define maxofRICactionID (16)
 #define maxofTNLA (32)
+#define maxofRICrequestID (4294967295)
 
 
 #ifdef __cplusplus

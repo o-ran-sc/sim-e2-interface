@@ -27,6 +27,7 @@ target_link_libraries( kpm_sim asn1_objects )
 target_link_libraries( kpm_sim e2sim )
 target_link_libraries( kpm_sim asn1_objects )
 target_link_libraries( kpm_sim pthread)
+#target_link_libraries( kpm_sim /usr/local/lib/libe2sim.a)
 
 install( 
     TARGETS kpm_sim
