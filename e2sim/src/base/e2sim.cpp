@@ -160,8 +160,7 @@ int E2Sim::run_loop(int argc, char* argv[]){
   }
     
   printf("about to call setup request encode\n");
-  encoding::generate_e2apv2_config_update(pdu_setup);
-  // generate_e2apv1_setup_request_parameterized(pdu_setup, all_funcs);
+  generate_e2apv1_setup_request_parameterized(pdu_setup, all_funcs);
 
   printf("After generating e2setup req\n");
 
