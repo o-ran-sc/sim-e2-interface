@@ -95,4 +95,34 @@ E2SM Callback Functions:
     $ cmake .. -DDEV_PKG=1
     $ make package
 
+# Building docker image and running simulator instance
 
+To start building docker image one should generate the `.deb` packages using following
+commands :
+
+```
+$ cd build          // create folder if not present
+```
+
+Generate .deb packages and move it to `e2sm_examples/kpm_e2sm` folder :
+```
+cmake .. && make package && cmake .. -DDEV_PKG=1 && make package
+cp *.deb ../e2sm_examples/kpm_e2sm/
+```
+
+Now we are ready to build the docker image using below command :
+```
+cd ../e2sm_examples/kpm_e2sm/
+docker build -t <simulator-image-name> .
+```
+
+if you wish to change the e2t address to connect then modify the `Dockerfile` in `e2sm_examples/kpm_e2sm/` path.
+```
+CMD kpm_sim 10.110.102.29 36422
+```
+Create instance of simulator :
+```
+$ docker run <simulator-image-name>
+``` 
+
+It will connect to specified e2t instance.
