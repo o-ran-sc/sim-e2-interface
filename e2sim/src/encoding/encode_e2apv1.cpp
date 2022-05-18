@@ -372,9 +372,13 @@ ASN_SEQUENCE_ADD(&e2configIE->value.choice.RANfunctions_List.list, e2configAddit
 }
 
 void encoding::generate_e2apv2_config_update(E2AP_PDU_t *e2ap_pdu){
- 
+ // txid
+ auto *e2txidIE = (E2nodeConfigurationUpdate_IEs_t *)calloc(1, sizeof(E2nodeConfigurationUpdate_IEs_t));
+ e2txidIE->id = ProtocolIE_ID_id_TransactionID;
+ e2txidIE-> criticality = Criticality_reject;
+ e2txidIE->value.present = E2nodeConfigurationUpdate_IEs__value_PR_TransactionID;
+ e2txidIE->value.choice.TransactionID = 1;
   
-
 /// config update id for addtion list  
 auto *e2configIE = (E2nodeConfigurationUpdate_IEs_t *)calloc(1, sizeof(E2nodeConfigurationUpdate_IEs_t));
 e2configIE->id = ProtocolIE_ID_id_E2nodeComponentConfigAddition;
@@ -414,16 +418,13 @@ memcpy(resPart.buf, (uint8_t *)"respart", 7);
 resPart.size = 7;
 e2configAdditionItem->value.choice.E2nodeComponentConfigAddition_Item.e2nodeComponentConfiguration.e2nodeComponentResponsePart = resPart;
 
-
-
-
-
 ASN_SEQUENCE_ADD(&e2configIE->value.choice.E2nodeComponentConfigAddition_List, e2configAdditionItem);
 
   InitiatingMessage *inititingMsg = (InitiatingMessage *) calloc(1, sizeof(InitiatingMessage));
-  inititingMsg->procedureCode = InitiatingMessage__value_PR_E2nodeConfigurationUpdate;
+  inititingMsg->procedureCode = ProcedureCode_id_E2nodeConfigurationUpdate;
   inititingMsg->criticality = Criticality_reject;
   inititingMsg->value.present = InitiatingMessage__value_PR_E2nodeConfigurationUpdate;
+  ASN_SEQUENCE_ADD(&inititingMsg->value.choice.E2nodeConfigurationUpdate.protocolIEs.list, e2txidIE);
   ASN_SEQUENCE_ADD(&inititingMsg->value.choice.E2nodeConfigurationUpdate.protocolIEs.list, e2configIE);
   e2ap_pdu->present = E2AP_PDU_PR_initiatingMessage;
   e2ap_pdu->choice.initiatingMessage = inititingMsg;
