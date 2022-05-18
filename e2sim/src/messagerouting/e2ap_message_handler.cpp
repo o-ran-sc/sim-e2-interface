@@ -189,6 +189,20 @@ void e2ap_handle_sctp_data(int &socket_fd, sctp_buffer_t &data, bool xmlenc, E2S
         }
       break;
 
+    case ProcedureCode_id_E2nodeConfigurationUpdate:
+      switch (index)
+        {
+          case E2AP_PDU_PR_successfulOutcome:
+          LOG_I("[E2AP] Received E2nodeConfigurationUpdate")
+          break;
+
+          default:
+            LOG_E("[E2AP] Invalid message index=%d in E2AP-PDU %d", index,
+                                    (int)ProcedureCode_id_E2nodeConfigurationUpdate);
+          break;
+        }
+      break;
+
     case ProcedureCode_id_RICserviceUpdate:
       switch (index)
         {
@@ -266,6 +280,42 @@ void e2ap_handle_E2SeviceRequest(E2AP_PDU_t* pdu, int &socket_fd, E2Sim *e2sim) 
     LOG_I("[SCTP] Sent E2-SERVICE-UPDATE");
   } else {
     LOG_E("[SCTP] Unable to send E2-SERVICE-UPDATE to peer");
+  }
+}
+
+void e2ap_send_e2nodeConfigUpdate(int &socket_fd) {
+
+  auto buffer_size = MAX_SCTP_BUFFER;
+  unsigned char buffer[MAX_SCTP_BUFFER];
+  E2AP_PDU_t* pdu = (E2AP_PDU_t*)calloc(1,sizeof(E2AP_PDU));
+
+  LOG_D("about to call e2nodeconfigUpdate encode\n");
+
+  encoding::generate_e2apv2_config_update(pdu);
+
+  LOG_D("[E2AP] Created E2nodeConfigUpdate");
+
+  e2ap_asn1c_print_pdu(pdu);
+
+  sctp_buffer_t data;
+
+  char error_buf[300] = {0, };
+  size_t errlen = 0;
+
+  asn_check_constraints(&asn_DEF_E2AP_PDU, pdu, error_buf, &errlen);
+
+  auto er = asn_encode_to_buffer(nullptr, ATS_ALIGNED_BASIC_PER, &asn_DEF_E2AP_PDU, pdu, buffer, buffer_size);
+
+  data.len = er.encoded;
+  fprintf(stderr, "er encoded is %d\n", er.encoded);
+
+  memcpy(data.buffer, buffer, er.encoded);
+
+  //send response data over sctp
+  if(sctp_send_data(socket_fd, data) > 0) {
+    LOG_I("[SCTP] Sent E2nodeConfigUpdate");
+  } else {
+    LOG_E("[SCTP] Unable to send E2nodeConfigUpdate to peer");
   }
 }
 
