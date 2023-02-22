@@ -194,6 +194,41 @@ int E2Sim::run_loop(int argc, char* argv[]){
     LOG_E("[SCTP] Unable to send E2-SETUP-REQUEST to peer");
   }
 
+  buffer_size = MAX_SCTP_BUFFER;
+  memset(buffer, '\0', sizeof(buffer));
+  E2AP_PDU_t* pdu = (E2AP_PDU_t*)calloc(1,sizeof(E2AP_PDU));
+
+  LOG_D("about to call E2ResetRequest encode\n");
+
+  encoding::generate_e2apv2_reset_request(pdu);
+
+  LOG_D("[E2AP] Created E2ResetRequest");
+
+  e2ap_asn1c_print_pdu(pdu);
+
+  sctp_buffer_t resetdata;
+
+  error_buf[300] = {0, };
+   errlen = 0;
+
+  asn_check_constraints(&asn_DEF_E2AP_PDU, pdu, error_buf, &errlen);
+  printf("error length %d\n", errlen);
+  printf("error buf %s\n", error_buf);
+  er = asn_encode_to_buffer(nullptr, ATS_ALIGNED_BASIC_PER, &asn_DEF_E2AP_PDU, pdu, buffer, buffer_size);
+
+  resetdata.len = er.encoded;
+  fprintf(stderr, "er encoded is %d\n", er.encoded);
+
+  memcpy(resetdata.buffer, buffer, er.encoded);
+
+  //send response data over sctp
+  if(sctp_send_data(client_fd, resetdata) > 0) {
+    LOG_I("[SCTP] Sent E2ResetRequest");
+  } else {
+    LOG_E("[SCTP] Unable to send E2ResetRequest to RIC");
+  }
+
+
   sctp_buffer_t recv_buf;
 
   LOG_I("[SCTP] Waiting for SCTP data");
