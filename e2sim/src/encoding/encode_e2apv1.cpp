@@ -929,7 +929,8 @@ void encoding::generate_e2apv1_indication_request_parameterized(E2AP_PDU *e2ap_p
 								uint8_t *ind_message_buf,
 								int message_length) {
   
-  fprintf(stderr, "ind1\n");
+  printf("Initializing E2AP request\n");
+
   RICindication_IEs_t *ricind_ies = (RICindication_IEs_t*)calloc(1, sizeof(RICindication_IEs_t));
   RICindication_IEs_t *ricind_ies2 = (RICindication_IEs_t*)calloc(1, sizeof(RICindication_IEs_t));
   RICindication_IEs_t *ricind_ies3 = (RICindication_IEs_t*)calloc(1, sizeof(RICindication_IEs_t));
@@ -947,8 +948,6 @@ void encoding::generate_e2apv1_indication_request_parameterized(E2AP_PDU *e2ap_p
   ricind_ies->value.present = pres3;
   ricind_ies->value.choice.RICrequestID.ricRequestorID = requestorId;
   ricind_ies->value.choice.RICrequestID.ricInstanceID = instanceId;
-
-  fprintf(stderr, "ind2\n");
 
   pres3 = RICindication_IEs__value_PR_RANfunctionID;
   ricind_ies2->id = ProtocolIE_ID_id_RANfunctionID;
@@ -977,8 +976,6 @@ void encoding::generate_e2apv1_indication_request_parameterized(E2AP_PDU *e2ap_p
   ricind_ies5->value.present = pres3;
   ricind_ies5->value.choice.RICindicationType = 0;
 
-  fprintf(stderr, "ind3\n");
-
   ricind_ies6->value.choice.RICindicationHeader.buf = (uint8_t*)calloc(1,header_length);
 
   pres3 = RICindication_IEs__value_PR_RICindicationHeader;
@@ -991,29 +988,18 @@ void encoding::generate_e2apv1_indication_request_parameterized(E2AP_PDU *e2ap_p
   ricind_ies7->value.choice.RICindicationMessage.buf = (uint8_t*)calloc(1,8192);
 
 
-  
-
   pres3 = RICindication_IEs__value_PR_RICindicationMessage;
   ricind_ies7->id = ProtocolIE_ID_id_RICindicationMessage;
-  fprintf(stderr, "after encoding message 1\n");
 
   ricind_ies7->criticality = 0;
   ricind_ies7->value.present = pres3;
 
-  fprintf(stderr, "after encoding message 2\n");
-
-  fprintf(stderr, "after encoding message 3\n");      
   ricind_ies7->value.choice.RICindicationMessage.size = message_length;
 
-  fprintf(stderr, "after encoding message 4\n");
   memcpy(ricind_ies7->value.choice.RICindicationMessage.buf, ind_message_buf, message_length);
-
-  fprintf(stderr, "after encoding message 5\n");
 
   uint8_t *cpid_buf = (uint8_t *)"cpid";
   OCTET_STRING_t cpid_str;
-
-  printf("5.1\n");
 
   int cpid_buf_len = strlen((char*)cpid_buf);
   pres3 = RICindication_IEs__value_PR_RICcallProcessID;
@@ -1027,39 +1013,16 @@ void encoding::generate_e2apv1_indication_request_parameterized(E2AP_PDU *e2ap_p
 
   memcpy(ricind_ies8->value.choice.RICcallProcessID.buf, cpid_buf, cpid_buf_len);
 
-  printf("5.2\n");
-
   RICindication_t *ricindication = (RICindication_t*)calloc(1, sizeof(RICindication_t));
 
-  
-  int ret;
-
-  ret = ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies);
-  
-  ret = ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies2);
-
-  printf("5.3\n");
-
-  ret = ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies3);
-
-  printf("5.35\n");
-  
-  ret = ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies4);
-
-  printf("5.36\n");
-  
-  ret = ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies5);
-
-  printf("5.4\n");
-  
-  ret = ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies6);
-
-  printf("5.5\n");
-
-  ret = ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies7);  
-  
-  ret = ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies8);    
-
+  ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies);
+  ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies2);
+  ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies3);
+  ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies4);
+  ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies5);
+  ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies6);
+  ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies7);  
+  ASN_SEQUENCE_ADD(&ricindication->protocolIEs.list, ricind_ies8);    
 
   InitiatingMessage__value_PR pres4;
   pres4 = InitiatingMessage__value_PR_RICindication;
@@ -1078,11 +1041,13 @@ void encoding::generate_e2apv1_indication_request_parameterized(E2AP_PDU *e2ap_p
   char error_buf[300] = {0, };
   size_t errlen = 0;
 
-  asn_check_constraints(&asn_DEF_E2AP_PDU, e2ap_pdu, error_buf, &errlen);
-  printf("error length %d\n", errlen);
-  printf("error buf %s\n", error_buf);
+  int ret = asn_check_constraints(&asn_DEF_E2AP_PDU, e2ap_pdu, error_buf, &errlen);
 
-  xer_fprint(stderr, &asn_DEF_E2AP_PDU, e2ap_pdu);  
+  if(ret) {
+    fprintf(stderr, "Constraint validation of E2AP PDU message failed: %s\n", error_buf);
+  }
+
+  //xer_fprint(stderr, &asn_DEF_E2AP_PDU, e2ap_pdu);  
 
 }
 

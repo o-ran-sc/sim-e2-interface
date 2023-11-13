@@ -20,9 +20,10 @@
 #ifndef E2SIM_DEFS_H
 #define E2SIM_DEFS_H
 
-// #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
 
 #define VERSION             "1.2.0"      //May 2019
 #define DEFAULT_SCTP_IP     "127.0.0.1"
@@ -38,7 +39,20 @@ char* time_stamp(void);
 // #define LOG_E(...) {printf("[%s]", time_stamp()); printf(__VA_ARGS__); printf("\n");}
 // #define LOG_D(...) {printf("[%s]", time_stamp()); printf(__VA_ARGS__); printf("\n");}
 
-#define LOG_I(...) {printf(__VA_ARGS__); printf("\n");}
+#define LOG_I(format, ...) \
+    do { \
+        const char *file = __FILE__; \
+        const char *fileName = strrchr(file, '/'); \
+        if (fileName != NULL) { \
+            fileName++; \
+        } \
+        else { \
+            fileName = file; \
+        } \
+        printf("[%s:%d] ", fileName, __LINE__); \
+        printf(format, ##__VA_ARGS__); \
+        printf("\n"); \
+    } while (0);
 #define LOG_E(...) {printf(__VA_ARGS__); printf("\n");}
 #define LOG_D(...) {printf(__VA_ARGS__); printf("\n");}
 

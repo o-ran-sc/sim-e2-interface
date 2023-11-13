@@ -21,7 +21,7 @@
 #
 add_library( encoding_objects OBJECT encode_e2apv1.cpp)
 
-include_directories(../ASN1c)
+include_directories(../../asn1c)
 
 target_include_directories (encoding_objects PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
