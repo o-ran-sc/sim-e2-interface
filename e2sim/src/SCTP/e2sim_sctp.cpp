@@ -232,10 +232,7 @@ int sctp_accept_connection(const char *server_ip_str, const int server_fd)
 
 int sctp_send_data(int &socket_fd, sctp_buffer_t &data)
 {
-  fprintf(stderr,"in sctp send data func\n");
-  fprintf(stderr,"data.len is %d", data.len);
   int sent_len = send(socket_fd, (void*)(&(data.buffer[0])), data.len, 0);
-  fprintf(stderr,"after getting sent_len\n");
 
   if(sent_len == -1) {
     perror("[SCTP] sctp_send_data");
@@ -269,14 +266,11 @@ Outcome of recv()
 int sctp_receive_data(int &socket_fd, sctp_buffer_t &data)
 {
   //clear out the data before receiving
-  fprintf(stderr, "receive data1\n");
   memset(data.buffer, 0, sizeof(data.buffer));
-  fprintf(stderr, "receive data2\n");  
   data.len = 0;
 
   //receive data from the socket
   int recv_len = recv(socket_fd, &(data.buffer), sizeof(data.buffer), 0);
-  fprintf(stderr, "receive data3\n");
   
   if(recv_len == -1)
   {

@@ -78,6 +78,8 @@ void E2Sim::encode_and_send_sctp_data(E2AP_PDU_t* pdu)
   data.len = e2ap_asn1c_encode_pdu(pdu, &buf);
   memcpy(data.buffer, buf, min(data.len, MAX_SCTP_BUFFER));
   if (buf) free(buf);
+  
+  LOG_I("Number of bytes sent via SCTP connection %d", min(data.len, MAX_SCTP_BUFFER));
 
   sctp_send_data(client_fd, data);
 }
@@ -221,13 +223,7 @@ int E2Sim::run_loop(int argc, char* argv[]){
 
   memcpy(resetdata.buffer, buffer, er.encoded);
 
-  //send response data over sctp
-  if(sctp_send_data(client_fd, resetdata) > 0) {
-    LOG_I("[SCTP] Sent E2ResetRequest");
-  } else {
-    LOG_E("[SCTP] Unable to send E2ResetRequest to RIC");
-  }
-
+  LOG_I("Test to delete ReSet code");
 
   sctp_buffer_t recv_buf;
 

@@ -21,7 +21,7 @@
 
 add_library( base_objects OBJECT e2sim.cpp)
 
-include_directories(../ASN1c)
+include_directories(../../asn1c)
 
 target_include_directories (base_objects PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
