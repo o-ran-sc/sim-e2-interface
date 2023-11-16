@@ -27,15 +27,26 @@
 #include "e2sim_defs.h"
 using namespace std;
 
+const char* performance_measurements[] = {
+  "DRB.RlcSduTransmittedVolumeDL_Filter", 
+  "DRB.RlcSduTransmittedVolumeUL_Filter", 
+  "DRB.PerDataVolumeDLDist.Bin ", 
+  "DRB.PerDataVolumeULDist.Bin", 
+  "DRB.RlcPacketDropRateDLDist", 
+  "DRB.PacketLossRateULDist", 
+  "L1M.DL-SS-RSRP.SSB",
+  "L1M.DL-SS-SINR.SSB",
+  "L1M.UL-SRS-RSRP"
+  };
+
+int NUMBER_MEASUREMENTS = 9;
+
 void encode_kpm_function_description(E2SM_KPM_RANfunction_Description_t* ranfunc_desc) {
   uint8_t* short_name = (uint8_t*)"ORAN-E2SM-KPM";
   uint8_t* func_desc = (uint8_t*)"KPM Monitor";
   uint8_t* e2sm_odi = (uint8_t*)"OID123";
 
   LOG_I("short_name: %s, func_desc: %s, e2sm_odi: %s", short_name, func_desc, e2sm_odi);
-
-  long inst = 1;
-
   ASN_STRUCT_RESET(asn_DEF_E2SM_KPM_RANfunction_Description, ranfunc_desc);
 
   ranfunc_desc->ranFunction_Name.ranFunction_ShortName.size = strlen((char*)short_name);
@@ -49,7 +60,8 @@ void encode_kpm_function_description(E2SM_KPM_RANfunction_Description_t* ranfunc
   memcpy(ranfunc_desc->ranFunction_Name.ranFunction_Description.buf, func_desc,
          strlen((char*)func_desc));
   ranfunc_desc->ranFunction_Name.ranFunction_Description.size = strlen((char*)func_desc);
-  ranfunc_desc->ranFunction_Name.ranFunction_Instance = &inst;
+  ranfunc_desc->ranFunction_Name.ranFunction_Instance = (long *)calloc(1, sizeof(long));
+  *ranfunc_desc->ranFunction_Name.ranFunction_Instance = 1;
 
   ranfunc_desc->ranFunction_Name.ranFunction_E2SM_OID.buf =
       (uint8_t*)calloc(1, strlen((char*)e2sm_odi));
@@ -66,7 +78,7 @@ void encode_kpm_function_description(E2SM_KPM_RANfunction_Description_t* ranfunc
   trigger_style->ric_EventTriggerStyle_Name.buf = (uint8_t*)calloc(1, strlen((char*)style_name));
   memcpy(trigger_style->ric_EventTriggerStyle_Name.buf, style_name, strlen((char*)style_name));
   trigger_style->ric_EventTriggerStyle_Name.size = strlen((char*)style_name);
-  trigger_style->ric_EventTriggerFormat_Type = 5;
+  trigger_style->ric_EventTriggerFormat_Type = 1;
 
   ranfunc_desc->ric_EventTriggerStyle_List =
       (E2SM_KPM_RANfunction_Description::
@@ -80,10 +92,9 @@ void encode_kpm_function_description(E2SM_KPM_RANfunction_Description_t* ranfunc
 
   MeasurementInfo_Action_List_t* measInfo_Action_List =
       (MeasurementInfo_Action_List_t*)calloc(1, sizeof(MeasurementInfo_Action_List_t));
-  uint8_t* measured_metrics[] = {(uint8_t*)"CQI", (uint8_t*)"RSRP", (uint8_t*)"RSRQ"};
 
-  for (int i = 0; i < 3; i++) {
-    uint8_t* metrics = measured_metrics[i];
+  for (int i = 0; i < NUMBER_MEASUREMENTS; i++) {
+    uint8_t* metrics = (uint8_t *)performance_measurements[i];
     MeasurementInfo_Action_Item_t* measItem =
         (MeasurementInfo_Action_Item_t*)calloc(1, sizeof(MeasurementInfo_Action_Item_t));
     measItem->measName.buf = (uint8_t*)calloc(1, strlen((char*)metrics));
@@ -218,90 +229,67 @@ void kpm_report_indication_header_initialized(E2SM_KPM_IndicationHeader_t* ihead
   ind_header->colletStartTime = *ts;
   if (ts) free(ts);
 
-  uint8_t* buf5 = (uint8_t*)"1.0";
-  ind_header->fileFormatversion = (PrintableString_t*)calloc(1, sizeof(PrintableString_t));
-  ind_header->fileFormatversion->buf = (uint8_t*)calloc(1, strlen((char*)buf5));
-  memcpy(ind_header->fileFormatversion->buf, buf5, strlen((char*)buf5));
-  ind_header->fileFormatversion->size = strlen((char*)buf5);
-
   ihead->indicationHeader_formats.present =
       E2SM_KPM_IndicationHeader__indicationHeader_formats_PR_indicationHeader_Format1;
   ihead->indicationHeader_formats.choice.indicationHeader_Format1 = ind_header;
 
-  // xer_fprint(stderr, &asn_DEF_E2SM_KPM_IndicationHeader, ihead);
 }
 
 void ue_meas_kpm_report_indication_message_initialized(
     E2SM_KPM_IndicationMessage_t* indicationmessage, uint8_t* nrcellid_buf, uint8_t* crnti_buf,
     const uint8_t* serving_buf, const uint8_t* neighbor_buf) {
-  GranularityPeriod_t period = 1;
-  MeasurementData_t* measData = (MeasurementData_t*)calloc(1, sizeof(MeasurementData_t));
-  MeasurementDataItem_t* measDataItem =
-      (MeasurementDataItem_t*)calloc(1, sizeof(MeasurementDataItem_t));
-  MeasurementRecord_t* measDataItem_record =
-      (MeasurementRecord_t*)calloc(1, sizeof(MeasurementRecord_t));
-  MeasurementRecordItem_t* measDataRecordItem =
-      (MeasurementRecordItem_t*)calloc(1, sizeof(MeasurementRecordItem_t));
+  
+  MeasurementRecord_t* measDataItem_record = (MeasurementRecord_t*)calloc(1, sizeof(MeasurementRecord_t));
+  for (size_t i = 0; i < NUMBER_MEASUREMENTS; i++)
+  {
+    MeasurementRecordItem_t* measDataRecordItem = (MeasurementRecordItem_t*)calloc(1, sizeof(MeasurementRecordItem_t));
+    measDataRecordItem->present = MeasurementRecordItem_PR_integer;
+    measDataRecordItem->choice.integer = 1;
 
-  unsigned long val = 1;
-  measDataRecordItem->present = MeasurementRecordItem_PR_integer;
-  measDataRecordItem->choice.integer = val;
+    ASN_SEQUENCE_ADD(&measDataItem_record->list, measDataRecordItem);
+  }
 
-  ASN_SEQUENCE_ADD(&measDataItem_record->list, measDataRecordItem);
-
+  MeasurementDataItem_t* measDataItem = (MeasurementDataItem_t*)calloc(1, sizeof(MeasurementDataItem_t));
   measDataItem->measRecord = *measDataItem_record;
-  long incomplete = 0;
   measDataItem->incompleteFlag = (long*)calloc(1, sizeof(long));
-  *measDataItem->incompleteFlag = incomplete;
+  *measDataItem->incompleteFlag = 0;
+
+  MeasurementData_t* measData = (MeasurementData_t*)calloc(1, sizeof(MeasurementData_t));
   ASN_SEQUENCE_ADD(&measData->list, measDataItem);
 
+  MeasurementInfoList_t* measList = (MeasurementInfoList_t*)calloc(1, sizeof(MeasurementInfoList_t));
+  for (size_t i = 0; i < NUMBER_MEASUREMENTS; i++)
+  {
+    MeasurementLabel_t* measLabel = (MeasurementLabel_t*)calloc(1, sizeof(MeasurementLabel_t));
+    measLabel->noLabel = (long *)calloc(1, sizeof(long));
+    *measLabel->noLabel = 0;
+
+    LabelInfoItem_t* labelItem = (LabelInfoItem_t*)calloc(1, sizeof(LabelInfoItem_t));
+    labelItem->measLabel = *measLabel;
+
+    LabelInfoList_t* labelList = (LabelInfoList_t*)calloc(1, sizeof(LabelInfoList_t));
+    ASN_SEQUENCE_ADD(&labelList->list, labelItem);
+
+    MeasurementType_t measType;
+    measType.present = MeasurementType_PR_measID;
+    uint8_t* metrics = (uint8_t *)performance_measurements[i];
+    measType.choice.measName.buf = (uint8_t*)calloc(1, strlen((char*)metrics));
+    memcpy(measType.choice.measName.buf, metrics, strlen((char*)metrics));
+    measType.choice.measName.size = strlen((char*)metrics);
+
+    MeasurementInfoItem_t* measItem = (MeasurementInfoItem_t*)calloc(1, sizeof(MeasurementInfoItem_t));
+    measItem->measType = measType;
+    measItem->labelInfoList = *labelList;
+    if (labelList) free(labelList);
+    
+    ASN_SEQUENCE_ADD(&measList->list, measItem);
+  }
+  
   E2SM_KPM_IndicationMessage_Format1_t* format = (E2SM_KPM_IndicationMessage_Format1_t*)calloc(
       1, sizeof(E2SM_KPM_IndicationMessage_Format1_t));
   format->granulPeriod = (GranularityPeriod_t*)calloc(1, sizeof(GranularityPeriod_t));
-  *format->granulPeriod = period;
+  *format->granulPeriod = 1;
   format->measData = *measData;
-
-  MeasurementInfoList_t* measList =
-      (MeasurementInfoList_t*)calloc(1, sizeof(MeasurementInfoList_t));
-  MeasurementInfoItem_t* measItem =
-      (MeasurementInfoItem_t*)calloc(1, sizeof(MeasurementInfoItem_t));
-  LabelInfoList_t* labelList = (LabelInfoList_t*)calloc(1, sizeof(LabelInfoList_t));
-  LabelInfoItem_t* labelItem = (LabelInfoItem_t*)calloc(1, sizeof(LabelInfoItem_t));
-  MeasurementLabel_t* measLabel = (MeasurementLabel_t*)calloc(1, sizeof(MeasurementLabel_t));
-
-  uint8_t* plmnid_buf = (uint8_t*)"747";
-  uint8_t* sst_buf = (uint8_t*)"1";
-  uint8_t* sd_buf = (uint8_t*)"100";
-
-  S_NSSAI_t* snssai = (S_NSSAI_t*)calloc(1, sizeof(S_NSSAI_t));
-  snssai->sST.buf = (uint8_t*)calloc(strlen((char*)sst_buf), sizeof(uint8_t));
-  snssai->sST.size = strlen((char*)sst_buf);
-  memcpy(snssai->sST.buf, sst_buf, strlen((char*)sst_buf));
-
-  snssai->sD = (SD_t*)calloc(1, sizeof(SD_t));
-  snssai->sD->buf = (uint8_t*)calloc(strlen((char*)sd_buf), sizeof(uint8_t));
-  snssai->sD->size = strlen((char*)sd_buf);
-  memcpy(snssai->sD->buf, sd_buf, strlen((char*)sd_buf));
-
-  int plmnid_size = strlen((char*)plmnid_buf);
-  PLMNIdentity_t* plmnidstr = (PLMNIdentity_t*)calloc(1, sizeof(PLMNIdentity_t));
-  plmnidstr->buf = (uint8_t*)calloc(plmnid_size, 1);
-  plmnidstr->size = plmnid_size;
-  memcpy(plmnidstr->buf, plmnid_buf, plmnidstr->size);
-
-  measLabel->plmnID = plmnidstr;
-  measLabel->sliceID = snssai;
-
-  labelItem->measLabel = *measLabel;
-  ASN_SEQUENCE_ADD(&labelList->list, labelItem);
-  measItem->labelInfoList = *labelList;
-  if (labelList) free(labelList);
-  MeasurementType_t measType;
-  measType.present = MeasurementType_PR_measID;
-  measType.choice.measID = 1;
-  measItem->measType = measType;
-  ASN_SEQUENCE_ADD(&measList->list, measItem);
-
   format->measInfoList = measList;
 
   E2SM_KPM_IndicationMessage__indicationMessage_formats_PR pres =
@@ -417,7 +405,6 @@ void cell_meas_kpm_report_indication_message_style_1_initialized(
   if (ret) {
     LOG_I("Constraint validation of indication message failed: %s\n", error_buf);
   }
-  // xer_fprint(stderr, &asn_DEF_E2SM_KPM_IndicationMessage, indicationmessage);
 }
 
 void encode_kpm_report_style1(E2SM_KPM_IndicationMessage_t* indicationmessage) {
@@ -478,9 +465,11 @@ void encode_kpm_report_style1(E2SM_KPM_IndicationMessage_t* indicationmessage) {
                            indicationmessage, e2smbuffer, e2smbuffer_size);
 
   if (er.encoded == -1) {
-    LOG_I("Failed to serialize message. Detail: %s.\n", asn_DEF_E2SM_KPM_IndicationMessage.name);
+    LOG_E("Failed to serialize message. Detail: %s.\n", asn_DEF_E2SM_KPM_IndicationMessage.name);
+    exit(1);
   } else if (er.encoded > e2smbuffer_size) {
-    LOG_I("Buffer of size %zu is too small for %s, need %zu\n", e2smbuffer_size, asn_DEF_E2SM_KPM_IndicationMessage.name, er.encoded);
+    LOG_E("Buffer of size %zu is too small for %s, need %zu\n", e2smbuffer_size, asn_DEF_E2SM_KPM_IndicationMessage.name, er.encoded);
+    exit(1);
   }
 }
 

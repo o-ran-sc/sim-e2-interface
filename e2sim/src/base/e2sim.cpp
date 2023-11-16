@@ -79,9 +79,7 @@ void E2Sim::encode_and_send_sctp_data(E2AP_PDU_t* pdu)
   memcpy(data.buffer, buf, min(data.len, MAX_SCTP_BUFFER));
   if (buf) free(buf);
   
-  LOG_I("Number of bytes sent via SCTP connection %d", min(data.len, MAX_SCTP_BUFFER));
-
-  sctp_send_data(client_fd, data);
+    sctp_send_data(client_fd, data);
 }
 
 
