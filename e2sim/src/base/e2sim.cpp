@@ -40,13 +40,13 @@ std::unordered_map<long, OCTET_STRING_t*> E2Sim::getRegistered_ran_functions() {
 }
 
 void E2Sim::register_subscription_callback(long func_id, SubscriptionCallback cb) {
-  fprintf(stderr,"%%%%about to register callback for subscription for func_id %d\n", func_id);
+  LOG_I("About to register callback for subscription for func_id %d", func_id);
   subscription_callbacks[func_id] = cb;
   
 }
 
 SubscriptionCallback E2Sim::get_subscription_callback(long func_id) {
-  fprintf(stderr, "%%%%we are getting the subscription callback for func id %d\n", func_id);
+  LOG_I("We are getting the subscription callback for func id %d", func_id);
   SubscriptionCallback cb;
 
   try {
@@ -62,13 +62,9 @@ void E2Sim::register_e2sm(long func_id, OCTET_STRING_t *ostr) {
 
   //Error conditions:
   //If we already have an entry for func_id
-  
-  printf("%%%%about to register e2sm func desc for %d\n", func_id);
-
+  LOG_I("About to register e2sm func desc for %d", func_id);
   ran_functions_registered[func_id] = ostr;
-
 }
-
 
 void E2Sim::encode_and_send_sctp_data(E2AP_PDU_t* pdu)
 {
@@ -78,8 +74,7 @@ void E2Sim::encode_and_send_sctp_data(E2AP_PDU_t* pdu)
   data.len = e2ap_asn1c_encode_pdu(pdu, &buf);
   memcpy(data.buffer, buf, min(data.len, MAX_SCTP_BUFFER));
   if (buf) free(buf);
-  
-    sctp_send_data(client_fd, data);
+  sctp_send_data(client_fd, data);
 }
 
 

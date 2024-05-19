@@ -22,7 +22,7 @@
 
 //#include <iostream>
 //#include <vector>
-
+#include <stdexcept>
 #include <unistd.h>
 
 #include "encode_e2apv1.hpp"
@@ -39,10 +39,11 @@ void e2ap_handle_sctp_data(int& socket_fd, sctp_buffer_t& data, bool xmlenc, E2S
   switch (rval.code) {
     case RC_WMORE:
     case RC_FAIL:
-    default:
       LOG_E("Failed to decode E2AP data from SCTP connection");
       ASN_STRUCT_FREE(asn_DEF_E2AP_PDU, pdu);
       exit(1);
+    default:
+      break;
   }
 
   int procedureCode = e2ap_asn1c_get_procedureCode(pdu);

@@ -28,12 +28,12 @@
 using namespace std;
 
 const char* performance_measurements[] = {
-  "DRB.RlcSduTransmittedVolumeDL_Filter", 
-  "DRB.RlcSduTransmittedVolumeUL_Filter", 
-  "DRB.PerDataVolumeDLDist.Bin ", 
-  "DRB.PerDataVolumeULDist.Bin", 
-  "DRB.RlcPacketDropRateDLDist", 
-  "DRB.PacketLossRateULDist", 
+  "DRB.RlcSduTransmittedVolumeDL_Filter",
+  "DRB.RlcSduTransmittedVolumeUL_Filter",
+  "DRB.PerDataVolumeDLDist.Bin",
+  "DRB.PerDataVolumeULDist.Bin",
+  "DRB.RlcPacketDropRateDLDist",
+  "DRB.PacketLossRateULDist",
   "L1M.DL-SS-RSRP.SSB",
   "L1M.DL-SS-SINR.SSB",
   "L1M.UL-SRS-RSRP"

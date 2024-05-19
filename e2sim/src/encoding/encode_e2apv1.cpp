@@ -71,8 +71,7 @@ long encoding::get_function_id_from_subscription(E2AP_PDU_t *e2ap_pdu) {
   
   RICsubscriptionRequest_IEs_t **ies = (RICsubscriptionRequest_IEs_t**)orig_req.protocolIEs.list.array;
 
-  fprintf(stderr, "count%d\n", count);
-  fprintf(stderr, "size%d\n", size);
+  LOG_I("Number of IEs in original request: %d, size: %d", count, size);
 
   RICsubscriptionRequest_IEs__value_PR pres;
 
@@ -82,17 +81,15 @@ long encoding::get_function_id_from_subscription(E2AP_PDU_t *e2ap_pdu) {
     RICsubscriptionRequest_IEs_t *next_ie = ies[i];
     pres = next_ie->value.present;
     
-    fprintf(stderr, "next present value %d\n", pres);
-    fprintf(stderr, "value of pres ranfuncid is %d\n", RICsubscriptionRequest_IEs__value_PR_RANfunctionID);
+    LOG_D("Next present value: %d, pres RAN func id: %d", pres, RICsubscriptionRequest_IEs__value_PR_RANfunctionID);
 
     if (pres == RICsubscriptionRequest_IEs__value_PR_RANfunctionID) {
-      fprintf(stderr, "equal pres to ranfuncid\n");
+      LOG_E("equal pres to ranfuncid");
       func_id = next_ie->value.choice.RANfunctionID;
     }
-    
   }
 
-  fprintf(stderr, "After loop, func_id is %d\n", func_id);
+  LOG_I("After loop, func_id is %d", func_id);
 
   return func_id;  
 
@@ -100,7 +97,7 @@ long encoding::get_function_id_from_subscription(E2AP_PDU_t *e2ap_pdu) {
 
 void encoding::generate_e2apv1_service_update(E2AP_PDU_t *e2ap_pdu, std::vector<encoding::ran_func_info> all_funcs) {
   char* ran_function_op_type = getenv("RAN_FUNCTION_OP_TYPE");
-  LOG_D("Ran funciton : %s", ran_function_op_type);
+  LOG_D("Ran function : %s", ran_function_op_type);
   ProtocolIE_ID_t prID;
   if (ran_function_op_type != NULL)
   {
@@ -668,7 +665,7 @@ void encoding::generate_e2apv1_subscription_response_success(E2AP_PDU *e2ap_pdu,
   respfuncid->id = ProtocolIE_ID_id_RANfunctionID;
   respfuncid->criticality = 0;
   respfuncid->value.present = RICsubscriptionResponse_IEs__value_PR_RANfunctionID;
-  respfuncid->value.choice.RANfunctionID = (long)0;
+  respfuncid->value.choice.RANfunctionID = (long)147;
   
 
   RICsubscriptionResponse_IEs_t *ricactionadmitted =
@@ -756,14 +753,9 @@ void encoding::generate_e2apv1_subscription_response_success(E2AP_PDU *e2ap_pdu,
   size_t errlen = 0;
 
   asn_check_constraints(&asn_DEF_E2AP_PDU, e2ap_pdu, error_buf, &errlen);
-  printf("error length %d\n", errlen);
-  printf("error buf %s\n", error_buf);
 
-  printf("now printing xer of subscription response\n");
-  xer_fprint(stderr, &asn_DEF_E2AP_PDU, e2ap_pdu);
-  printf("done printing xer of subscription response\n");  
-
-  
+  LOG_I("Subscription response");
+  xer_fprint(stderr, &asn_DEF_E2AP_PDU, e2ap_pdu); 
 }
 
 void encoding::generate_e2apv1_subscription_response(E2AP_PDU *e2ap_pdu, E2AP_PDU *sub_req_pdu) {
@@ -781,8 +773,7 @@ void encoding::generate_e2apv1_subscription_response(E2AP_PDU *e2ap_pdu, E2AP_PD
   
   RICsubscriptionRequest_IEs_t **ies = (RICsubscriptionRequest_IEs_t**)orig_req.protocolIEs.list.array;
 
-  fprintf(stderr, "count%d\n", count);
-  fprintf(stderr, "size%d\n", size);
+  LOG_I("Number of IEs in original request: %d, size: %d", count, size);
 
   RICsubscriptionRequest_IEs__value_PR pres;
 
@@ -796,60 +787,48 @@ void encoding::generate_e2apv1_subscription_response(E2AP_PDU *e2ap_pdu, E2AP_PD
     RICsubscriptionRequest_IEs_t *next_ie = ies[i];
     pres = next_ie->value.present;
     
-    fprintf(stderr, "next present value %d\n", pres);
+    LOG_D("Next present value %d", pres);
 
     switch(pres) {
     case RICsubscriptionRequest_IEs__value_PR_RICrequestID:
       {
-	RICrequestID_t reqId = next_ie->value.choice.RICrequestID;
-	long requestorId = reqId.ricRequestorID;
-	long instanceId = reqId.ricInstanceID;
-	fprintf(stderr, "requestorId %d\n", requestorId);
-	fprintf(stderr, "instanceId %d\n", instanceId);
-	responseRequestorId = requestorId;
-	responseInstanceId = instanceId;
-		
-	break;
+        RICrequestID_t reqId = next_ie->value.choice.RICrequestID;
+        long requestorId = reqId.ricRequestorID;
+        long instanceId = reqId.ricInstanceID;
+
+        LOG_I("RequestorId %d, InstanceId: %d", requestorId, instanceId);
+        
+        responseRequestorId = requestorId;
+        responseInstanceId = instanceId;
+	      break;
       }
     case RICsubscriptionRequest_IEs__value_PR_RANfunctionID:
       break;
     case RICsubscriptionRequest_IEs__value_PR_RICsubscriptionDetails:
       {
-	RICsubscriptionDetails_t subDetails = next_ie->value.choice.RICsubscriptionDetails; 
-	RICeventTriggerDefinition_t triggerDef = subDetails.ricEventTriggerDefinition;
-	RICactions_ToBeSetup_List_t actionList = subDetails.ricAction_ToBeSetup_List;
-	
-	int actionCount = actionList.list.count;
-	fprintf(stderr, "action count%d\n", actionCount);
+        RICsubscriptionDetails_t subDetails = next_ie->value.choice.RICsubscriptionDetails; 
+        RICeventTriggerDefinition_t triggerDef = subDetails.ricEventTriggerDefinition;
+        RICactions_ToBeSetup_List_t actionList = subDetails.ricAction_ToBeSetup_List;
+        
+        int actionCount = actionList.list.count;
+        LOG_I("Action count%d", actionCount);
 
-	auto **item_array = actionList.list.array;
+        auto **item_array = actionList.list.array;
 
-	for (int i=0; i < actionCount; i++) {
-	  //RICaction_ToBeSetup_Item_t
-	  auto *next_item = item_array[i];
-	  RICactionID_t actionId = ((RICaction_ToBeSetup_ItemIEs*)next_item)->value.choice.RICaction_ToBeSetup_Item.ricActionID;
-	  fprintf(stderr, "Next Action ID %ld\n", actionId);
-	  responseActionId = actionId;
-	  actionIds.push_back(responseActionId);
-	}
-	
-	break;
+        for (int i=0; i < actionCount; i++) {
+          //RICaction_ToBeSetup_Item_t
+          auto *next_item = item_array[i];
+          RICactionID_t actionId = ((RICaction_ToBeSetup_ItemIEs*)next_item)->value.choice.RICaction_ToBeSetup_Item.ricActionID;
+          LOG_D("Next Action ID %ld", actionId);
+          responseActionId = actionId;
+          actionIds.push_back(responseActionId);
+        }
+        
+        break;
       }
     }
     
   }
-
-  fprintf(stderr, "After Processing Subscription Request\n");
-
-  fprintf(stderr, "requestorId %d\n", responseRequestorId);
-  fprintf(stderr, "instanceId %d\n", responseInstanceId);
-
-
-  for (int i=0; i < actionIds.size(); i++) {
-    fprintf(stderr, "Action ID %d %ld\n", i, actionIds.at(i));
-    
-  }
-
 
   RICsubscriptionResponse_IEs_t *respricreqid =
     (RICsubscriptionResponse_IEs_t*)calloc(1, sizeof(RICsubscriptionResponse_IEs_t));
@@ -860,7 +839,6 @@ void encoding::generate_e2apv1_subscription_response(E2AP_PDU *e2ap_pdu, E2AP_PD
   respricreqid->value.choice.RICrequestID.ricRequestorID = responseRequestorId;
   
   respricreqid->value.choice.RICrequestID.ricInstanceID = responseInstanceId;
-
 
   RICsubscriptionResponse_IEs_t *ricactionadmitted =
     (RICsubscriptionResponse_IEs_t*)calloc(1, sizeof(RICsubscriptionResponse_IEs_t));
@@ -873,8 +851,6 @@ void encoding::generate_e2apv1_subscription_response(E2AP_PDU *e2ap_pdu, E2AP_PD
   ricactionadmitted->value.choice.RICaction_Admitted_List = *admlist;
 
   for (int i=0; i < actionIds.size(); i++) {
-    fprintf(stderr, "in for loop i = %d\n", i);
-
     long aid = actionIds.at(i);
 
     RICaction_Admitted_ItemIEs_t *admitie = (RICaction_Admitted_ItemIEs_t*)calloc(1,sizeof(RICaction_Admitted_ItemIEs_t));
@@ -886,7 +862,6 @@ void encoding::generate_e2apv1_subscription_response(E2AP_PDU *e2ap_pdu, E2AP_PD
     ASN_SEQUENCE_ADD(&ricactionadmitted->value.choice.RICaction_Admitted_List.list, admitie);
 
   }
-
 
   RICsubscriptionResponse_t *ricsubresp = (RICsubscriptionResponse_t*)calloc(1,sizeof(RICsubscriptionResponse_t));
   
@@ -911,11 +886,6 @@ void encoding::generate_e2apv1_subscription_response(E2AP_PDU *e2ap_pdu, E2AP_PD
   size_t errlen = 0;
 
   asn_check_constraints(&asn_DEF_E2AP_PDU, e2ap_pdu, error_buf, &errlen);
-  printf("error length %d\n", errlen);
-  printf("error buf %s\n", error_buf);
-
-
-  
 }
 
 void encoding::generate_e2apv1_indication_request_parameterized(E2AP_PDU *e2ap_pdu,
@@ -929,7 +899,7 @@ void encoding::generate_e2apv1_indication_request_parameterized(E2AP_PDU *e2ap_p
 								uint8_t *ind_message_buf,
 								int message_length) {
   
-  printf("Initializing E2AP request\n");
+  LOG_I("Initializing E2AP request");
 
   RICindication_IEs_t *ricind_ies = (RICindication_IEs_t*)calloc(1, sizeof(RICindication_IEs_t));
   RICindication_IEs_t *ricind_ies2 = (RICindication_IEs_t*)calloc(1, sizeof(RICindication_IEs_t));
@@ -1044,11 +1014,6 @@ void encoding::generate_e2apv1_indication_request_parameterized(E2AP_PDU *e2ap_p
   int ret = asn_check_constraints(&asn_DEF_E2AP_PDU, e2ap_pdu, error_buf, &errlen);
 
   if(ret) {
-    fprintf(stderr, "Constraint validation of E2AP PDU message failed: %s\n", error_buf);
+    LOG_I("Constraint validation of E2AP PDU message failed: %s\n", error_buf);
   }
-
-  //xer_fprint(stderr, &asn_DEF_E2AP_PDU, e2ap_pdu);  
-
 }
-
-
