@@ -50,11 +50,13 @@ extern "C" {
 #include "viavi_connector.hpp"
 #include "errno.h"
 #include "e2sim_defs.h"
+#include <cstdlib>
+
 using json = nlohmann::json;
 
 using namespace std;
 class E2Sim;
-
+int gFuncId;
 
 E2Sim e2sim;
 
@@ -97,10 +99,12 @@ int main(int argc, char* argv[]) {
   ranfunc_ostr->buf = (uint8_t*)calloc(1,er.encoded);
   ranfunc_ostr->size = er.encoded;
   memcpy(ranfunc_ostr->buf,e2smbuffer,er.encoded);
- 
-  e2sim.register_e2sm(0,ranfunc_ostr);
-  e2sim.register_subscription_callback(0,&callback_kpm_subscription_request);
 
+  const char* func_id_str = std::getenv("RAN_FUNC_ID");
+  ::gFuncId = func_id_str == nullptr ? 0 : std::stoi(func_id_str);
+
+  e2sim.register_e2sm(gFuncId, ranfunc_ostr);
+  e2sim.register_subscription_callback(gFuncId, &callback_kpm_subscription_request);
   e2sim.run_loop(argc, argv);
 
 }
@@ -337,7 +341,7 @@ void run_report_loop(long requestorId, long instanceId, long ranFunctionId, long
 				LOG_I("Buffer of size %zu is too small for %s, need %zu\n", e2sm_message_buf_size_cucp_ue, asn_DEF_E2SM_KPM_IndicationMessage.name, er_message_cucp_ue.encoded);
 				exit(1);
 			} else {
-				LOG_I("Encoded UE indication message succesfully, size in bytes: %d", er_message_cucp_ue.encoded)
+				LOG_I("Encoded UE indication message succesfully, size in bytes: %zu", er_message_cucp_ue.encoded)
 			}
 
 			ASN_STRUCT_FREE(asn_DEF_E2SM_KPM_IndicationMessage, ind_msg_cucp_ue); 
@@ -362,7 +366,7 @@ void run_report_loop(long requestorId, long instanceId, long ranFunctionId, long
 				LOG_I("Buffer of size %zu is too small for %s, need %zu\n", e2sm_header_buf_size_cucp_ue, asn_DEF_E2SM_KPM_IndicationHeader.name, er_header_cucp_ue.encoded);
 				exit(1);
 			} else {
-				LOG_I("Encoded UE indication header succesfully, size in bytes: %d", er_header_cucp_ue.encoded);
+				LOG_I("Encoded UE indication header succesfully, size in bytes: %zu", er_header_cucp_ue.encoded);
 				for(int i = 0; i < er_header_cucp_ue.encoded; i ++) {
 					printf("%x ", e2sm_header_buf_cucp_ue[i]);
 				}
@@ -381,7 +385,7 @@ void run_report_loop(long requestorId, long instanceId, long ranFunctionId, long
 											er_message_cucp_ue.encoded);
 			
 			e2sim.encode_and_send_sctp_data(pdu_cucp_ue);
-			LOG_I("Measurement report for UE %d has been sent\n", i);
+			LOG_I("Measurement report for UE %d has been sent", i);
 			seqNum++;
 			std::this_thread::sleep_for (std::chrono::milliseconds(50));
 		}
@@ -473,13 +477,13 @@ void run_report_loop(long requestorId, long instanceId, long ranFunctionId, long
 										e2sm_message_buf_style1, e2sm_message_buf_size_style1);
 			
 			if(er_message_style1.encoded == -1) {
-				LOG_I("Failed to serialize data. Detail: %s.\n", asn_DEF_E2SM_KPM_IndicationMessage.name);
+				LOG_I("Failed to serialize data. Detail: %s.", asn_DEF_E2SM_KPM_IndicationMessage.name);
 				exit(1);
 			} else if(er_message_style1.encoded > e2sm_message_buf_size_style1) {
 				LOG_I("Buffer of size %zu is too small for %s, need %zu\n", e2sm_message_buf_size_style1, asn_DEF_E2SM_KPM_IndicationMessage.name, er_message_style1.encoded);
 				exit(1);
 			} else {
-				LOG_I("Encoded Cell indication message succesfully, size in bytes: %d", er_message_style1.encoded)
+				LOG_I("Encoded Cell indication message succesfully, size in bytes: %ld", er_message_style1.encoded)
 			}
 
 			ASN_STRUCT_FREE(asn_DEF_E2SM_KPM_IndicationMessage, ind_message_style1);
@@ -531,8 +535,6 @@ void run_report_loop(long requestorId, long instanceId, long ranFunctionId, long
 
 void callback_kpm_subscription_request(E2AP_PDU_t *sub_req_pdu) {
 
-  fprintf(stderr, "[%s:%d]Calling callback_kpm_subscription_request");
-
   //Record RIC Request ID
   //Go through RIC action to be Setup List
   //Find first entry with REPORT action Type
@@ -563,79 +565,70 @@ void callback_kpm_subscription_request(E2AP_PDU_t *sub_req_pdu) {
     RICsubscriptionRequest_IEs_t *next_ie = ies[i];
     pres = next_ie->value.present;
     
-    LOG_I("The next present value %d\n", pres);
+    LOG_I("The next present value %d", pres);
 
     switch(pres) {
-    case RICsubscriptionRequest_IEs__value_PR_RICrequestID:
-      {
-	LOG_I("in case request id");	
-	RICrequestID_t reqId = next_ie->value.choice.RICrequestID;
-	long requestorId = reqId.ricRequestorID;
-	long instanceId = reqId.ricInstanceID;
-	LOG_I("requestorId %d\n", requestorId);
-	LOG_I("instanceId %d\n", instanceId);
-	reqRequestorId = requestorId;
-	reqInstanceId = instanceId;
+		case RICsubscriptionRequest_IEs__value_PR_RICrequestID: {
+			LOG_I("in case request id");
+			RICrequestID_t reqId = next_ie->value.choice.RICrequestID;
+			long requestorId = reqId.ricRequestorID;
+			long instanceId = reqId.ricInstanceID;
 
-	break;
-      }
-    case RICsubscriptionRequest_IEs__value_PR_RANfunctionID:
-      {
-	LOG_I("in case ran func id");	
-	break;
-      }
-    case RICsubscriptionRequest_IEs__value_PR_RICsubscriptionDetails:
-      {
-	RICsubscriptionDetails_t subDetails = next_ie->value.choice.RICsubscriptionDetails;
-	RICeventTriggerDefinition_t triggerDef = subDetails.ricEventTriggerDefinition;
-	RICactions_ToBeSetup_List_t actionList = subDetails.ricAction_ToBeSetup_List;
-	//We are ignoring the trigger definition
+			LOG_I("requestorId: %ld, InstanceID: %ld", requestorId, instanceId);
 
-	//We identify the first action whose type is REPORT
-	//That is the only one accepted; all others are rejected
-	
-	int actionCount = actionList.list.count;
-	LOG_I("Action count%d\n", actionCount);
+			reqRequestorId = requestorId;
+			reqInstanceId = instanceId;
 
-	auto **item_array = actionList.list.array;
+			break;
+		}
+		case RICsubscriptionRequest_IEs__value_PR_RANfunctionID: {
+			LOG_I("in case ran func id");
+			break;
+		}
+		case RICsubscriptionRequest_IEs__value_PR_RICsubscriptionDetails: {
+			RICsubscriptionDetails_t subDetails = next_ie->value.choice.RICsubscriptionDetails;
+			RICeventTriggerDefinition_t triggerDef = subDetails.ricEventTriggerDefinition;
+			RICactions_ToBeSetup_List_t actionList = subDetails.ricAction_ToBeSetup_List;
+			//We are ignoring the trigger definition
 
-	bool foundAction = false;
+			//We identify the first action whose type is REPORT
+			//That is the only one accepted; all others are rejected
 
-	for (int i=0; i < actionCount; i++) {
+			int actionCount = actionList.list.count;
+			LOG_I("Action count%d", actionCount);
 
-	  auto *next_item = item_array[i];
-	  RICactionID_t actionId = ((RICaction_ToBeSetup_ItemIEs*)next_item)->value.choice.RICaction_ToBeSetup_Item.ricActionID;
-	  RICactionType_t actionType = ((RICaction_ToBeSetup_ItemIEs*)next_item)->value.choice.RICaction_ToBeSetup_Item.ricActionType;
+			auto **item_array = actionList.list.array;
 
-	  if (!foundAction && actionType == RICactionType_report) {
-	    reqActionId = actionId;
-	    actionIdsAccept.push_back(reqActionId);
-	    foundAction = true;
-	  } else {
-	    reqActionId = actionId;
-	    actionIdsReject.push_back(reqActionId);
-	  }
-	}
-	
-	break;
-      }
-    default:
-      {
-	break;
-      }      
+			bool foundAction = false;
+
+			for (int i=0; i < actionCount; i++) {
+				auto *next_item = item_array[i];
+				RICactionID_t actionId = ((RICaction_ToBeSetup_ItemIEs*)next_item)->value.choice.RICaction_ToBeSetup_Item.ricActionID;
+				RICactionType_t actionType = ((RICaction_ToBeSetup_ItemIEs*)next_item)->value.choice.RICaction_ToBeSetup_Item.ricActionType;
+
+				if (!foundAction && actionType == RICactionType_report) {
+					reqActionId = actionId;
+					actionIdsAccept.push_back(reqActionId);
+					foundAction = true;
+				} else {
+					reqActionId = actionId;
+					actionIdsReject.push_back(reqActionId);
+				}
+			}
+
+			break;
+		}
+		default: {
+			break;
+		}
     }
     
   }
 
   LOG_I("After Processing Subscription Request");
 
-  LOG_I("requestorId %d\n", reqRequestorId);
-  LOG_I("instanceId %d\n", reqInstanceId);
-
-
   for (int i=0; i < actionIdsAccept.size(); i++) {
-    LOG_I("Action ID %d %ld\n", i, actionIdsAccept.at(i));
-    
+    LOG_D("Action ID %d %ld\n", i, actionIdsAccept.at(i));
   }
 
   E2AP_PDU *e2ap_pdu = (E2AP_PDU*)calloc(1,sizeof(E2AP_PDU));
@@ -650,8 +643,7 @@ void callback_kpm_subscription_request(E2AP_PDU_t *sub_req_pdu) {
   LOG_I("Encode and sending E2AP subscription success response via SCTP");
   e2sim.encode_and_send_sctp_data(e2ap_pdu);
 
-  long funcId = 0;
-
-  run_report_loop(reqRequestorId, reqInstanceId, funcId, reqActionId);
+  LOG_I("Now generating data for subscription request");
+  run_report_loop(reqRequestorId, reqInstanceId, gFuncId, reqActionId);
 
 }

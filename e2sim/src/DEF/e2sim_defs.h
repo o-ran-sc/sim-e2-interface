@@ -49,12 +49,40 @@ char* time_stamp(void);
         else { \
             fileName = file; \
         } \
-        printf("[%s:%d] ", fileName, __LINE__); \
-        printf(format, ##__VA_ARGS__); \
-        printf("\n"); \
+        fprintf(stderr, "[%s:%d] [INFO] ", fileName, __LINE__); \
+        fprintf(stderr, format, ##__VA_ARGS__); \
+        fprintf(stderr, "\n"); \
     } while (0);
-#define LOG_E(...) {printf(__VA_ARGS__); printf("\n");}
-#define LOG_D(...) {printf(__VA_ARGS__); printf("\n");}
+
+#define LOG_D(format, ...) \
+    do { \
+        const char *file = __FILE__; \
+        const char *fileName = strrchr(file, '/'); \
+        if (fileName != NULL) { \
+            fileName++; \
+        } \
+        else { \
+            fileName = file; \
+        } \
+        fprintf(stderr, "[%s:%d] [DEBUG] ", fileName, __LINE__); \
+        fprintf(stderr, format, ##__VA_ARGS__); \
+        fprintf(stderr, "\n"); \
+    } while (0);
+
+#define LOG_E(format, ...) \
+    do { \
+        const char *file = __FILE__; \
+        const char *fileName = strrchr(file, '/'); \
+        if (fileName != NULL) { \
+            fileName++; \
+        } \
+        else { \
+            fileName = file; \
+        } \
+        fprintf(stderr, "[%s:%d] [ERROR] ", fileName, __LINE__); \
+        fprintf(stderr, format, ##__VA_ARGS__); \
+        fprintf(stderr, "\n"); \
+    } while (0);
 
 typedef struct SCTP_DATA {
   unsigned char *data;

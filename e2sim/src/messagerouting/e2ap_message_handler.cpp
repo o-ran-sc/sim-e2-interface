@@ -49,7 +49,7 @@ void e2ap_handle_sctp_data(int& socket_fd, sctp_buffer_t& data, bool xmlenc, E2S
   int procedureCode = e2ap_asn1c_get_procedureCode(pdu);
   int index = (int)pdu->present;
 
-  LOG_D("Unpacked E2AP-PDU: index = %d, procedureCode = %d\n", index, procedureCode);
+  LOG_D("Unpacked E2AP-PDU: index = %d, procedureCode = %d", index, procedureCode);
 
   switch (procedureCode) {
     case ProcedureCode_id_E2setup:
@@ -97,29 +97,20 @@ void e2ap_handle_sctp_data(int& socket_fd, sctp_buffer_t& data, bool xmlenc, E2S
       LOG_I("Received a message of RIC subscription procedure");
       switch (index) {
         case E2AP_PDU_PR_initiatingMessage: {  // initiatingMessage
-          LOG_I("Received RIC-SUBSCRIPTION-REQUEST");
-          //          e2ap_handle_RICSubscriptionRequest(pdu, socket_fd);
           long func_id = encoding::get_function_id_from_subscription(pdu);
-          fprintf(stderr, "Function Id of message is %d\n", func_id);
-          SubscriptionCallback cb;
-
-          bool func_exists = true;
+          LOG_I("Received RIC subscription request for function with ID %d", func_id);
 
           try {
+            SubscriptionCallback cb;
             cb = e2sim->get_subscription_callback(func_id);
-          } catch (const std::out_of_range& e) {
-            func_exists = false;
-          }
-
-          if (func_exists) {
-            fprintf(stderr, "Calling callback function\n");
+            LOG_I("Calling callback subscription function to handle subscription request to function with ID %d", func_id);
             cb(pdu);
-          } else {
-            fprintf(stderr, "Error: No RAN Function with this ID exists\n");
+          } catch (const std::out_of_range& e) {
+            LOG_E("No RAN Function with this ID exists\n");
           }
-          //	  callback_kpm_subscription_request(pdu, socket_fd);
 
-        } break;
+          break;
+        }
 
         case E2AP_PDU_PR_successfulOutcome:
           LOG_I("Received RIC-SUBSCRIPTION-RESPONSE");

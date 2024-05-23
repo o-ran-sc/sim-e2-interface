@@ -21,17 +21,13 @@
 
 void e2ap_asn1c_print_pdu(const E2AP_PDU_t* pdu)
 {
-  printf("before\n");
   //  xer_fprint(stdout, &asn_DEF_E2AP_PDU, (void *)pdu);
   xer_fprint(stdout, &asn_DEF_E2AP_PDU, pdu);
-  printf("after\n");
-  printf("\n");
 }
 
 void asn1c_xer_print(asn_TYPE_descriptor_t *typeDescriptor, void *data)
 {
   xer_fprint(stdout, typeDescriptor, (void *)data);
-  printf("\n");
 }
 
 
@@ -208,7 +204,7 @@ int e2ap_asn1c_get_procedureCode(E2AP_PDU_t* pdu)
   switch(pdu->present)
   {
     case E2AP_PDU_PR_initiatingMessage:
-      fprintf(stderr,"initiating message\n");
+      LOG_I("Initiating E2AP PDU PR message");
       procedureCode = pdu->choice.initiatingMessage->procedureCode;
       break;
 
