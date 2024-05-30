@@ -1,0 +1,8 @@
+Code-Review+2: Alex Stancu <alexandru.stancu@highstreet-technologies.com>
+Verified+1: ORAN Required GHA <releng+oran.required.gha@linuxfoundation.org>
+Verified+1: ORAN Jobbuilder <releng+oran-jobbuilder@linuxfoundation.org>
+Submitted-by: Alex Stancu <alexandru.stancu@highstreet-technologies.com>
+Submitted-at: Thu, 30 May 2024 13:17:37 +0000
+Reviewed-on: https://gerrit.o-ran-sc.org/r/c/sim/e2-interface/+/12922
+Project: sim/e2-interface
+Branch: refs/heads/master
