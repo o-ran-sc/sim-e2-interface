@@ -28,8 +28,8 @@
 using namespace std;
 
 const char* performance_measurements[] = {
-  "DRB.RlcSduTransmittedVolumeDL_Filter",
-  "DRB.RlcSduTransmittedVolumeUL_Filter",
+  "DRB.RlcSduTransmittedVolumeDL",
+  "DRB.RlcSduTransmittedVolumeUL",
   "DRB.PerDataVolumeDLDist.Bin",
   "DRB.PerDataVolumeULDist.Bin",
   "DRB.RlcPacketDropRateDLDist",
@@ -103,7 +103,7 @@ void encode_kpm_function_description(E2SM_KPM_RANfunction_Description_t* ranfunc
     measItem->measName.size = strlen((char*)metrics);
 
     measItem->measID = (MeasurementTypeID_t*)calloc(1, sizeof(MeasurementTypeID_t));
-    *measItem->measID = i;
+    *measItem->measID = i+1;
 
     ASN_SEQUENCE_ADD(&measInfo_Action_List->list, measItem);
   }
@@ -308,6 +308,7 @@ void ue_meas_kpm_report_indication_message_initialized(
 
   if (ret) {
     LOG_I("Constraint validation of indication message failed: %s", error_buf);
+    exit(1);
   }
 
   // xer_fprint(stderr, &asn_DEF_E2SM_KPM_IndicationMessage, indicationmessage);
@@ -404,6 +405,7 @@ void cell_meas_kpm_report_indication_message_style_1_initialized(
 
   if (ret) {
     LOG_I("Constraint validation of indication message failed: %s\n", error_buf);
+    exit(1);
   }
 }
 
@@ -453,6 +455,7 @@ void encode_kpm_report_style1(E2SM_KPM_IndicationMessage_t* indicationmessage) {
 
   if (ret) {
     LOG_I("Constraint validation of indication message failed: %s\n", error_buf);
+    exit(1);
   }
 
   uint8_t e2smbuffer[8192] = {
