@@ -56,3 +56,6 @@ committers:
       timezone: 'America/New York (GMT -5)'
 tsc:
     approval: 'https://lists.o-ran-sc.org/g/toc/message/102'
+Additional documentation:
+
+For deploying E2 Simulator on Ubuntu 22.04 bare metal connected to a near-RT RIC running in a minikube cluster, see docs/e2sim-baremetal-ubuntu22.04-minikube.md.      
