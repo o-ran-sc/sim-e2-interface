@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
   memcpy(ranfunc_ostr->buf,e2smbuffer,er.encoded);
 
   const char* func_id_str = std::getenv("RAN_FUNC_ID");
-  ::gFuncId = func_id_str == nullptr ? 0 : std::stoi(func_id_str);
+  ::gFuncId = func_id_str == nullptr ? 2 : std::stoi(func_id_str);
 
   e2sim.register_e2sm(gFuncId, ranfunc_ostr);
   e2sim.register_subscription_callback(gFuncId, &callback_kpm_subscription_request);
