@@ -271,7 +271,7 @@ void ue_meas_kpm_report_indication_message_initialized(
     ASN_SEQUENCE_ADD(&labelList->list, labelItem);
 
     MeasurementType_t measType;
-    measType.present = MeasurementType_PR_measID;
+    measType.present = MeasurementType_PR_measName;
     uint8_t* metrics = (uint8_t *)performance_measurements[i];
     measType.choice.measName.buf = (uint8_t*)calloc(1, strlen((char*)metrics));
     memcpy(measType.choice.measName.buf, metrics, strlen((char*)metrics));
